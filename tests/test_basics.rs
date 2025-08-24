@@ -15,14 +15,14 @@ async fn test_basics_on(contract_wasm: &[u8]) -> Result<(), Box<dyn std::error::
     let user_account = sandbox.dev_create_account().await?;
 
     let outcome = user_account
-        .call(contract.id(), "set_greeting")
-        .args_json(json!({"greeting": "Hello World!"}))
+        .call(contract.id(), "kill_wormman")
+        .args_json(json!({}))
         .transact()
         .await?;
     assert!(outcome.is_success());
 
-    let user_message_outcome = contract.view("get_greeting").args_json(json!({})).await?;
-    assert_eq!(user_message_outcome.json::<String>()?, "Hello World!");
+    let user_message_outcome = contract.view("get_wormman_state").args_json(json!({})).await?;
+    assert_eq!(user_message_outcome.json::<bool>()?, false);
 
     Ok(())
 }
