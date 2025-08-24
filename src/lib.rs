@@ -26,11 +26,11 @@ impl Contract {
 
     pub fn move_character_left(&mut self) {
         self.character_coords_x -= 1;
-        log!("Moved character one step left. Coordinate: {}", self.character_coords_x);
-        if self.character_coords_x == 8 {
+        log!("Moved character one step left. Coordinates: {}, {}", self.character_coords_x, self.character_coords_y);
+        if self.character_coords_x == 8 && self.character_coords_y == 0 {
             log!("There's a dead body on the ground.");
         }
-        if self.character_coords_x == 5 {
+        if self.character_coords_x == 5 && self.character_coords_y == 0 {
             log!("A ladder is going up.");
         }
     }
@@ -44,11 +44,11 @@ impl Contract {
 
     pub fn move_character_right(&mut self) {
         self.character_coords_x += 1;
-        log!("Moved character one step right. Coordinate: {}", self.character_coords_x);
-        if self.character_coords_x == 8 {
+        log!("Moved character one step right. Coordinate: {}, {}", self.character_coords_x, self.character_coords_y);
+        if self.character_coords_x == 8 && self.character_coords_y == 0 {
             log!("There's a dead body on the ground.");
         }
-        if self.character_coords_x == 5 {
+        if self.character_coords_x == 5 && self.character_coords_y == 0 {
             log!("A ladder is going up.");
         }
     }
