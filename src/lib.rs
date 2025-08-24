@@ -15,6 +15,7 @@ impl Default for Contract {
         Self {
             wormman_state: true,
             character_coords_x: 0,
+            character_coords_y: 0,
         }
     }
 }
@@ -22,11 +23,7 @@ impl Default for Contract {
 // Implement the contract structure
 #[near]
 impl Contract {
-    fn character_y() -> Self {
-        Self {
-            character_coords_y: 0,
-        }
-    }
+
     pub fn move_character_left(&mut self) {
         self.character_coords_x -= 1;
         log!("Moved character one step left. Coordinate: {}", self.character_coords_x);
@@ -35,6 +32,13 @@ impl Contract {
         }
         if self.character_coords_x == 5 {
             log!("A ladder is going up.");
+        }
+    }
+    
+    pub fn move_character_up(&mut self) {
+        if character_coords_y == 0 && character_coords_x == 5 {
+            character_coords_y == 1;
+            log!("Climbed up the ladder. Coordinate: {}, {}", self.character_coords_x, self.character_coords_y,)
         }
     }
 
