@@ -270,6 +270,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "borsh-schema-writer"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c7f1fbcef193da84da7746d81709a822de1ccb429c5955beca3377617923eae"
+dependencies = [
+ "borsh",
+ "borsh-derive",
+]
+
+[[package]]
 name = "brownstone"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4503,7 +4513,10 @@ dependencies = [
 name = "wormmen-invasion-near"
 version = "0.1.0"
 dependencies = [
+ "borsh",
+ "borsh-schema-writer",
  "near-sdk",
+ "near-sdk-macros",
  "near-workspaces",
  "serde_json",
  "tokio",
