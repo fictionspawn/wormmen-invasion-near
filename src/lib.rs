@@ -7,7 +7,7 @@ use near_sdk_macros::NearSchema;
 #[near(contract_state)]
 pub struct Contract { 
     player_states: LookupMap<AccountId, PlayerState>,
-   // game_state: GameState,
+    game_state: GameState,
 }
 
 //Define player specifics
@@ -19,24 +19,24 @@ pub struct PlayerState {
     character_coords_y: i32,
     inventory: Vec<String>,
 }
-/*
+
 //Define general game state affecting all players
 #[derive(BorshDeserialize, BorshSerialize, NearSchema, Default, Clone)]
 #[abi(borsh)]
 pub struct GameState {
     wormman_dead: bool,
     door_open: bool,
-}*/
+}
 
 // Define the default, which automatically initializes the contract
 impl Default for Contract {
     fn default() -> Self {
         Self {
             player_states: LookupMap::new(b"player_states".to_vec()),
-   /*         game_state {
+            game_state: GameState {
                 wormman_dead: false,
                 door_open: false,
-            }*/
+            },
         }
     }
 }
@@ -75,34 +75,63 @@ impl Contract {
     }
 
     //Move the character to the left
-    pub fn move_character_left(&mut self, steps: i32) {
+    pub fn move_character_left(&mut self) {
         let mut state = self.get_player_state();
-        state.character_coords_x -= steps;
-        if state.character_coords_x == 4 && state.character_coords_y == 0 {
+        state.character_coords_x -= 1;
+        if state.character_coords_x == 2 && state.character_coords_y == 0 {
             log!("There's a dead body on the ground.");
         }
-        if state.character_coords_x == 2 && state.character_coords_y == 0 {
+        if state.character_coords_x == 1 && state.character_coords_y == 0 {
             log!("A ladder is going up.");
         }
-        log!("Moved character to the left. Coordinates: {}, {}", steps, state.character_coords_x, state.character_coords_y);
+        log!("Moved character to the left. Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
+        if state.character_coords_y == 1 {
+            if state.character_coords_x <= -1 {
+                state.character_coords_x = -1;
+                if self.game_state.door_open == false {
+                    log!("You've reached a closed door.");
+                } else {
+                    log!("An open door leads to a winding staircase down into the dark")
+                }
+            }               
+        }
         self.set_player_state(state);
     }
-   
+
+    pub fn unlock_or_lock_door(&mut self) {
+        let state = self.get_player_state();
+        if state.character_coords_y == 1 {
+            if state.character_coords_x == -1 {
+                if state.inventory.contains(&"Key".to_string()) {
+                    if self.game_state.door_open == false {
+                        log!("You've unlocked the door.");
+                        self.game_state.door_open = true;
+                    } else {
+                        log!("You've locked the door.");
+                        self.game_state.door_open = false;
+                    }
+                } else {
+                    log!("You don't have the key.");
+                }
+            }
+        }
+    }
+
     //Move the character to the right
-    pub fn move_character_right(&mut self, steps: i32) {
+    pub fn move_character_right(&mut self) {
         let mut state = self.get_player_state();
-        state.character_coords_x += steps;
-        if state.character_coords_x == 4 && state.character_coords_y == 0 {
+        state.character_coords_x += 1;
+        if state.character_coords_x == 2 && state.character_coords_y == 0 {
             log!("There's a dead body on the ground.");
         }
-        if state.character_coords_x == 2 && state.character_coords_y == 0 {
+        if state.character_coords_x == 1 && state.character_coords_y == 0 {
             log!("A ladder is going up.");
         }
-        if state.character_coords_x >= 6 && state.character_coords_y == 0 {
+        if state.character_coords_x >= 3 && state.character_coords_y == 0 {
             if state.inventory.contains(&"Key".to_string()) {
                 log!("Yay! You got out of the dungeon!");
             } else { 
-                state.character_coords_x = 6;
+                state.character_coords_x = 1;
                 log!("You've reached a heavy metal door");
             }
         }
@@ -113,7 +142,7 @@ impl Contract {
     //Climb up when possible
     pub fn move_character_up(&mut self) {
         let mut state = self.get_player_state();
-        if state.character_coords_y == 0 && state.character_coords_x == 2 {
+        if state.character_coords_y == 0 && state.character_coords_x == 1 {
             state.character_coords_y = 1;
             log!("Climbed up the ladder. Coordinate: {}, {}", state.character_coords_x, state.character_coords_y);
             self.set_player_state(state);
@@ -123,17 +152,18 @@ impl Contract {
     //Climb down when possible
     pub fn move_character_down(&mut self) {
         let mut state = self.get_player_state();
-        if state.character_coords_y == 1 && state.character_coords_x == 2 {
+        if state.character_coords_y == 1 && state.character_coords_x == 1 {
             state.character_coords_y = 0;
             log!("Climbed down the ladder. Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
             self.set_player_state(state);
         }
+        //TODO: Build basement staircase
     }
 
     //Pick up an item
     pub fn pick_up_item(&mut self) {
         let mut state = self.get_player_state();
-        if state.character_coords_y == 1 && state.character_coords_x == 4 {
+        if state.character_coords_y == 1 && state.character_coords_x == 2 {
             state.inventory.push("Key".to_string());
             log!("Picked up Key");
             self.set_player_state(state);
