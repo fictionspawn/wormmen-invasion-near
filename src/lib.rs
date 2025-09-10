@@ -20,6 +20,8 @@ pub struct PlayerState {
     inventory: Vec<String>,
 }
 
+//TODO: Add moving wormman
+
 //Define general game state affecting all players
 #[derive(BorshDeserialize, BorshSerialize, NearSchema, Default, Clone)]
 #[abi(borsh)]
@@ -68,10 +70,18 @@ impl Contract {
         }
     }
 
+
     //save player state to chain
     fn set_player_state(&mut self, state: PlayerState) {
         let account_id = env::signer_account_id();
         self.player_states.insert(account_id, state);
+    }
+
+    //Get game info
+    pub fn start_game() {
+        log!("Welcome to Wormmen Invasion smart contract edition!");
+        log!("This game is played using NEAR protocol contract calls to wormmen4.testnet");
+        log!("You find yourself in a dark dungeon. You ran down here when the wormmen attacked the castle, and now there is no safe way out.\nYou see a ladder, a dead body and door to your right. To your left there's a solid brick wall. Terrible sounds can be heard from upstairs");
     }
 
     //Move the character to the left
@@ -96,25 +106,6 @@ impl Contract {
             }               
         }
         self.set_player_state(state);
-    }
-
-    pub fn unlock_or_lock_door(&mut self) {
-        let state = self.get_player_state();
-        if state.character_coords_y == 1 {
-            if state.character_coords_x == -1 {
-                if state.inventory.contains(&"Key".to_string()) {
-                    if self.game_state.door_open == false {
-                        log!("You've unlocked the door.");
-                        self.game_state.door_open = true;
-                    } else {
-                        log!("You've locked the door.");
-                        self.game_state.door_open = false;
-                    }
-                } else {
-                    log!("You don't have the key.");
-                }
-            }
-        }
     }
 
     //Move the character to the right
@@ -159,6 +150,26 @@ impl Contract {
         }
         //TODO: Build basement staircase
     }
+    
+    //unlock and lock the first-floor/basement door for everyone if key in inventory
+    pub fn unlock_or_lock_door(&mut self) {
+        let state = self.get_player_state();
+        if state.character_coords_y == 1 {
+            if state.character_coords_x == -1 {
+                if state.inventory.contains(&"Key".to_string()) {
+                    if self.game_state.door_open == false {
+                        log!("You've unlocked the door.");
+                        self.game_state.door_open = true;
+                    } else {
+                        log!("You've locked the door.");
+                        self.game_state.door_open = false;
+                    }
+                } else {
+                    log!("You don't have the key.");
+                }
+            }
+        }
+    }
 
     //Pick up an item
     pub fn pick_up_item(&mut self) {
@@ -197,7 +208,7 @@ impl Contract {
         self.set_player_state(state);
     }
     
-    //Make the wormman alive again when needed
+    //Make the wormman alive again when needed ||
     pub fn revive_wormman(&mut self) {
         let mut state = self.get_player_state();
         log!("Reviving wormman.");
