@@ -35,3 +35,18 @@ cargo near deploy build-reproducible-wasm <account-id>
 - [NEAR Discord](https://near.chat)
 - [NEAR Telegram Developers Community Group](https://t.me/neardev)
 - NEAR DevHub: [Telegram](https://t.me/neardevhub), [Twitter](https://twitter.com/neardevhub)
+
+A game I'm writing to learn and practice rust smart contract development on NEAR Protocol.
+
+This is proof of concept for a coordinate based smart contract platform game.
+
+WORK IN PROGRESS
+
+The current state can be played by installing near-cli-rs, and make a contract call to wormmen4.testnet: write near in the terminal choose contract, then contract calls, and choose start_game, json arguments, {}. 
+
+Game play is rather slow still, but things will get better.
+
+TODO: Create user owned storage. 
+TODO: Introduce NFTs.
+TODO: Introduce FTs.
+
