@@ -70,7 +70,6 @@ impl Contract {
         }
     }
 
-
     //save player state to chain
     fn set_player_state(&mut self, state: PlayerState) {
         let account_id = env::signer_account_id();
@@ -87,68 +86,120 @@ impl Contract {
     //Move the character to the left
     pub fn move_character_left(&mut self) {
         let mut state = self.get_player_state();
+        log!("Moved character left");
         state.character_coords_x -= 1;
-        if state.character_coords_x == 2 && state.character_coords_y == 0 {
-            log!("There's a dead body on the ground.");
-        }
-        if state.character_coords_x == 1 && state.character_coords_y == 0 {
-            log!("A ladder is going up.");
-        }
-        log!("Moved character to the left. Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
-        if state.character_coords_y == 1 {
+        if state.character_coords_y == 0 {
             if state.character_coords_x <= -1 {
+                log!("You've reached a brick wall");
                 state.character_coords_x = -1;
+            }
+            if state.character_coords_x == 1 {
+                log!("There's a ladder going up.");
+            }
+            if state.character_coords_x == 2 {
+                log!("A dead body lies torn on the ground.");
+            }
+        }
+        if state.character_coords_y == 1 {
+            if state.character_coords_x <= 0 {
+                state.character_coords_x = 0;
                 if self.game_state.door_open == false {
                     log!("You've reached a closed door.");
                 } else {
                     log!("An open door leads to a winding staircase down into the dark")
                 }
             }               
+            else if state.character_coords_x == 1 {
+                log!("There's a ladder going down");
+            }
+            else if state.character_coords_x == 2 {
+                if !state.inventory.contains(&"Key".to_string()) {
+                    log!("There's a key on the ground");
+                }
+            }
         }
+        log!("Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
         self.set_player_state(state);
     }
 
     //Move the character to the right
     pub fn move_character_right(&mut self) {
         let mut state = self.get_player_state();
+        log!("Moved character to the right."); 
         state.character_coords_x += 1;
-        if state.character_coords_x == 2 && state.character_coords_y == 0 {
-            log!("There's a dead body on the ground.");
-        }
-        if state.character_coords_x == 1 && state.character_coords_y == 0 {
-            log!("A ladder is going up.");
-        }
-        if state.character_coords_x >= 3 && state.character_coords_y == 0 {
-            if state.inventory.contains(&"Key".to_string()) {
-                log!("Yay! You got out of the dungeon!");
-            } else { 
-                state.character_coords_x = 1;
-                log!("You've reached a heavy metal door");
+        if state.character_coords_y == 0 {
+            if state.character_coords_x == 2 {
+                log!("A dead body lies torn on the ground.");
+            }
+            if state.character_coords_x == 1 {
+                log!("A ladder is going up.");
+            }
+            if state.character_coords_x >= 3 {
+                if state.inventory.contains(&"Key".to_string()) {
+                    log!("Yay! You got out of the dungeon!");
+                    state.character_coords_x = 3;
+                } else { 
+                    log!("You've reached a heavy metal door");
+                    state.character_coords_x = 3;
+                }
             }
         }
-        log!("Moved character to the right. Coordinate: {}, {}", state.character_coords_x, state.character_coords_y);
+        if state.character_coords_y == 1 {
+            if state.character_coords_x == 1 {
+                log!("There's a ladder going down.");
+            }
+            if state.character_coords_x == 2 {
+                if !state.inventory.contains(&"Key".to_string()) {
+                    log!("There's a key on the ground");
+                }
+            }
+            if state.character_coords_x == 3 {
+                log!("You've reached solid brick wall");
+            }
+        }
+        log!("Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
         self.set_player_state(state);
     }
  
     //Climb up when possible
     pub fn move_character_up(&mut self) {
         let mut state = self.get_player_state();
+        //Climb up ladder
         if state.character_coords_y == 0 && state.character_coords_x == 1 {
             state.character_coords_y = 1;
-            log!("Climbed up the ladder. Coordinate: {}, {}", state.character_coords_x, state.character_coords_y);
-            self.set_player_state(state);
+            log!("You climb up the ladder.");
         }
+        //Walk up basement stairs
+        if state.character_coords_y == -1 {
+            if state.character_coords_x == 2 {
+                log!("You walk up the big, heavy stairs");
+                state.character_coords_y = 1;
+                state.character_coords_x = 0;
+            }
+        }
+        log!("Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
+        self.set_player_state(state);
     }
 
     //Climb down when possible
     pub fn move_character_down(&mut self) {
         let mut state = self.get_player_state();
-        if state.character_coords_y == 1 && state.character_coords_x == 1 {
-            state.character_coords_y = 0;
-            log!("Climbed down the ladder. Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
-            self.set_player_state(state);
+        //Climb down ladder
+        if state.character_coords_y == 1 {
+            if state.character_coords_x == 1 {
+                state.character_coords_y = 0;
+                log!("You climb down the ladder.");
+            }   
+            //Walk down basement stairs
+            if state.character_coords_x == 0 {
+                log!("You walk down the winding staircase.\nA humid, undergorund smell gets stronger\nuntil you reach the basement stone floor.");
+                state.character_coords_y = -1;
+                state.character_coords_x = 2;
+            }
         }
-        //TODO: Build basement staircase
+        log!("Coordinates: {}, {}", state.character_coords_x, state.character_coords_y);
+        self.set_player_state(state);
+        //DONE: Build basement staircase
     }
     
     //unlock and lock the first-floor/basement door for everyone if key in inventory
@@ -175,9 +226,11 @@ impl Contract {
     pub fn pick_up_item(&mut self) {
         let mut state = self.get_player_state();
         if state.character_coords_y == 1 && state.character_coords_x == 2 {
-            state.inventory.push("Key".to_string());
-            log!("Picked up Key");
-            self.set_player_state(state);
+            if !state.inventory.contains(&"Key".to_string()) {
+                state.inventory.push("Key".to_string());
+                log!("Picked up Key");
+                self.set_player_state(state);
+            }
         }
     }
 
@@ -186,7 +239,6 @@ impl Contract {
         let state = self.get_player_state();
         log!("Inventory: {:?}", state.inventory)
     }
-
 
     //get the coordinates for the specific player character
     pub fn get_character_coords(&mut self) {
